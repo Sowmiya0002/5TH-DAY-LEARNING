@@ -5,7 +5,7 @@ from langchain.schema.runnable import Runnable
 from langchain_core.messages import HumanMessage, SystemMessage
 
 # --- Set Gemini API Key directly here ---
-GOOGLE_API_KEY = "YOUR_API_KEY_HERE"  # 🔒 Replace with your actual key
+GOOGLE_API_KEY = "AIzaSyAPSM-tjDDFZcCploLoXiJ8MkjxAA5ukwk"  # 🔒 Replace with your actual key
 
 # --- Streamlit Page Config ---
 st.set_page_config(page_title="English to French Translator", layout="centered")
