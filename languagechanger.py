@@ -1,50 +1,51 @@
 import streamlit as st
-from langchain.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import Runnable
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.schema.runnable import Runnable
-from langchain_core.messages import HumanMessage, SystemMessage
 
-# --- Set Gemini API Key directly here ---
-GOOGLE_API_KEY = "AIzaSyAPSM-tjDDFZcCploLoXiJ8MkjxAA5ukwk"  # 🔒 Replace with your actual key
+# --- SET GEMINI API KEY DIRECTLY ---
+GOOGLE_API_KEY = "AIzaSyAPSM-tjDDFZcCploLoXiJ8MkjxAA5ukwk"  # Replace this with your real key
 
-# --- Streamlit Page Config ---
+# --- STREAMLIT UI CONFIG ---
 st.set_page_config(page_title="English to French Translator", layout="centered")
 st.title("🌍 English to French Translator")
 st.markdown("Translate any English sentence into French using Gemini + LangChain.")
 
-# --- Input from user ---
-english_sentence = st.text_input("📝 Enter English sentence:", "")
+# --- TEXT INPUT ---
+sentence = st.text_input("📝 Enter English sentence:")
 
-# --- Translate Button ---
+# --- TRANSLATE BUTTON ---
 if st.button("Translate to French"):
 
-    if not english_sentence.strip():
+    if not sentence.strip():
         st.warning("Please enter a sentence to translate.")
-    else:
-        try:
-            # --- Initialize Gemini Model (Free Tier) ---
-            llm = ChatGoogleGenerativeAI(
-                model="models/chat-bison-001",  # ✅ Free-supported model
-                google_api_key=GOOGLE_API_KEY,
-                temperature=0.3,
-            )
+        st.stop()
 
-            # --- Define Prompt Template ---
-            prompt = ChatPromptTemplate.from_messages([
-                SystemMessage(content="You are a translation assistant. Translate any English sentence to French."),
-                HumanMessage(content="{sentence}")
-            ])
+    # --- Initialize Gemini Model ---
+    try:
+        llm = ChatGoogleGenerativeAI(
+            model="gemini-1.5-flash",  # Free-tier friendly model
+            google_api_key=GOOGLE_API_KEY,
+            temperature=0.3
+        )
+    except Exception as e:
+        st.error(f"❌ Failed to load Gemini model: {e}")
+        st.stop()
 
-            # --- Chain ---
-            chain: Runnable = prompt | llm
+    # --- Prompt Template ---
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", "You are a helpful assistant that translates English to French."),
+        ("user", "Translate the following sentence to French: {text}")
+    ])
 
-            # --- Run chain with input ---
-            response = chain.invoke({"sentence": english_sentence})
+    # --- Chain: prompt | llm ---
+    chain: Runnable = prompt | llm
 
-            # --- Output ---
-            st.success("✅ Successfully translated!")
-            st.markdown("**🇫🇷 French Translation:**")
-            st.write(response.content)
-
-        except Exception as e:
-            st.error(f"❌ Error dur
+    # --- Run Chain ---
+    try:
+        response = chain.invoke({"text": sentence})
+        french = response.content
+        st.success("✅ Translation successful!")
+        st.markdown(f"**French:** {french}")
+    except Exception as e:
+        st.error(f"❌ Error during translation: {e}")
